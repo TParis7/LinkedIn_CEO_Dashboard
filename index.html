@@ -170,12 +170,16 @@
             .header-meta{font-size:11px;margin-top:3px;}
             .header-actions{width:100%;margin-top:8px;}
             .header-actions .btn{flex:1;justify-content:center;font-size:13px;padding:8px 12px;}
-            .tab-bar{padding:0 4px;gap:0;}
-            .tab-btn{padding:10px 12px;font-size:13px;}
+            /* Nav bar — bigger touch targets on mobile */
+            .tab-bar{padding:0;gap:0;-webkit-overflow-scrolling:touch;justify-content:center;}
+            .tab-btn{padding:14px 16px;font-size:14px;min-height:48px;flex:1;text-align:center;}
             .card{padding:12px 14px;}
             .topics-grid{grid-template-columns:1fr !important;}
             .vid-grid{grid-template-columns:1fr !important;}
             .vtog-lg .vtog-btn{padding:6px 16px;font-size:13px;}
+            /* Calendar — horizontal scroll wrapper on mobile */
+            .cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px;}
+            .cal-scroll .cal-grid{min-width:560px;}
             .cal-day{min-height:56px;padding:2px 3px;}
             .cal-ev{font-size:9px;padding:1px 3px;}
             .cal-hd{padding:4px 2px;font-size:10px;}
@@ -188,10 +192,26 @@
             .preview-box{max-width:100%;}
             .modal{width:95%;max-height:90vh;}
             .q-card{padding:12px;}
-            .week-row{grid-template-columns:54px 1fr;gap:8px;}
+            /* Mobile calendar — Google Calendar schedule style */
+            .week-row{grid-template-columns:1fr;gap:0;padding:0;border-bottom:none;}
+            .week-label{display:flex;align-items:center;gap:8px;padding:8px 0 4px;border-bottom:1px solid var(--li-brd);font-size:14px;}
+            .week-label small{display:inline;font-size:13px;color:var(--li-text-sec);margin-left:0;}
+            .week-label .wl-day{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--li-black);background:transparent;flex-shrink:0;}
+            .week-label .wl-day.today{background:var(--li-blue);color:#fff;}
+            .week-label .wl-name{font-size:13px;font-weight:600;color:var(--li-text-sec);text-transform:uppercase;letter-spacing:.5px;}
+            .week-events{padding-left:44px;}
+            .wcard{padding:8px 12px;margin-bottom:4px;border-radius:6px;}
+            .wcard-title{font-size:13px;}
+            .wcard-meta{font-size:10px;}
+            .week-empty{font-size:11px;color:var(--li-text-mut);font-style:italic;padding:4px 0;}
+            /* Hide month view + toggle on mobile */
+            .cal-scroll{display:none !important;}
+            .vtog-lg{display:none !important;}
+            #cal-week{display:block !important;}
+            .cal-month-nav{display:none !important;}
         }
         @media(max-width:380px){
-            .tab-btn{padding:10px 8px;font-size:12px;}
+            .tab-btn{padding:14px 10px;font-size:13px;}
             .header-actions .btn{font-size:12px;padding:7px 8px;}
         }
         @media print{.tab-bar,.composer,.btn,.modal-bg{display:none!important;}.tab-content{display:block!important;}body{background:#fff;}}
@@ -223,14 +243,13 @@
                     <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M15.5 1.94a.5.5 0 010 .706L14.46 3.69l-2-2L13.5.646a.5.5 0 01.707 0l1.293 1.293zm-1.75 2.456l-2-2L4.94 9.21a.5.5 0 00-.121.196l-.805 2.414a.25.25 0 00.316.316l2.414-.805a.5.5 0 00.196-.12l6.814-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 002.5 15h11a1.5 1.5 0 001.5-1.5v-6a.5.5 0 00-1 0v6a.5.5 0 01-.5.5h-11a.5.5 0 01-.5-.5v-11a.5.5 0 01.5-.5H9a.5.5 0 000-1H2.5A1.5 1.5 0 001 2.5v11z"/></svg>
                     Compose Post
                 </button>
-                <button class="btn btn-ol" onclick="switchTab('topics')">Topics & Ideas</button>
             </div>
         </div>
     </div>
 
     <!-- TABS — reordered: Hot Topics first, Dashboard last -->
     <div class="tab-bar">
-        <button class="tab-btn active" data-tab="topics">Hot Topics & Video Ideas</button>
+        <button class="tab-btn active" data-tab="topics">Topics & Ideas</button>
         <button class="tab-btn" data-tab="calendar">Content Calendar</button>
         <button class="tab-btn" data-tab="templates">Post Templates</button>
     </div>
@@ -253,12 +272,12 @@
                     </div>
                     <div><div class="card-title" id="cal-title">March 2026</div><div class="card-sub">Plan and schedule LinkedIn content</div></div>
                 </div>
-                <div style="display:flex;gap:6px;">
+                <div class="cal-month-nav" style="display:flex;gap:6px;">
                     <button class="btn btn-gh btn-sm" onclick="chgMonth(-1)">← Prev</button>
                     <button class="btn btn-gh btn-sm" onclick="chgMonth(1)">Next →</button>
                 </div>
             </div>
-            <div id="cal-month"></div>
+            <div class="cal-scroll"><div id="cal-month"></div></div>
             <div id="cal-week" style="display:none;"></div>
         </div>
         <div class="card" style="padding:10px 20px;">
@@ -481,13 +500,15 @@ function renderCal(){
 }
 function renderWeek(){
     const ws=new Date(2026,2,16);
+    const today=new Date();
     let h='';
     for(let i=0;i<7;i++){
         const dt=new Date(ws);dt.setDate(dt.getDate()+i);
         const ds=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
         const evts=CAL.filter(e=>e.date===ds);
-        h+='<div class="week-row"><div class="week-label">'+DY[dt.getDay()]+'<small>'+dt.getDate()+' Mar</small></div><div>';
-        if(!evts.length)h+='<div style="font-size:12px;color:var(--li-text-mut);font-style:italic;padding:4px 0;">No content planned</div>';
+        const isToday=dt.getDate()===today.getDate()&&dt.getMonth()===today.getMonth()&&dt.getFullYear()===today.getFullYear();
+        h+='<div class="week-row"><div class="week-label"><span class="wl-day'+(isToday?' today':'')+'">'+dt.getDate()+'</span><span class="wl-name">'+DY[dt.getDay()]+'</span><small>'+MO[dt.getMonth()].slice(0,3)+'</small></div><div class="week-events">';
+        if(!evts.length)h+='<div class="week-empty">No content planned</div>';
         evts.forEach(e=>{
             h+='<div class="wcard '+e.type+'" onclick="loadDraft('+CAL.indexOf(e)+')"><div class="wcard-title">'+e.title+'</div><div class="wcard-meta">'+e.type+'</div></div>';
         });
@@ -496,7 +517,7 @@ function renderWeek(){
     document.getElementById('cal-week').innerHTML=h;
 }
 function chgMonth(d){cMonth+=d;if(cMonth>11){cMonth=0;cYear++;}if(cMonth<0){cMonth=11;cYear--;}renderCal();}
-function togCal(v,b){document.querySelectorAll('.vtog-lg .vtog-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('cal-month').style.display=v==='month'?'block':'none';document.getElementById('cal-week').style.display=v==='week'?'block':'none';}
+function togCal(v,b){document.querySelectorAll('.vtog-lg .vtog-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelector('.cal-scroll').style.display=v==='month'?'block':'none';document.getElementById('cal-week').style.display=v==='week'?'block':'none';}
 function openDay(ds){const e=CAL.find(c=>c.date===ds);if(e){loadDraft(CAL.indexOf(e));}}
 
 
