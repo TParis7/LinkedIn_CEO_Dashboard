@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P3 LinkedIn Command Center</title>
+    <style>
+        :root{--li-blue:#0A66C2;--li-blue-hover:#004182;--li-blue-light:#D0E8FF;--li-blue-bg:#EEF3F8;--li-black:#191919;--li-text:#000000E6;--li-text-sec:#00000099;--li-text-mut:#00000061;--li-bg:#F4F2EE;--li-card:#FFFFFF;--li-brd:#0000001A;--li-brd-dk:#00000026;--li-green:#057642;--li-green-bg:#E7F4E4;--li-red:#CC1016;--li-amber:#915907;--li-amber-bg:#FFF9E6;--li-violet:#5F3DC4;--p3-crim:#D93A3A;--p3-maroon:#4A1414;--radius:8px;--shadow:0 0 0 1px var(--li-brd),0 2px 4px rgba(0,0,0,.04);}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:-apple-system,system-ui,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--li-bg);color:var(--li-text);line-height:1.5;font-size:14px;}
+        .app{max-width:1128px;margin:0 auto;padding:16px 12px;}
+
+        /* Header — LinkedIn profile style */
+        .header{background:var(--li-card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:8px;overflow:hidden;}
+        .header-banner{height:120px;background:linear-gradient(135deg,#004182 0%,#0A66C2 40%,#378FE9 100%);position:relative;}
+        .header-banner::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+        .header-avatar-row{padding:0 24px;margin-top:-52px;position:relative;z-index:1;}
+        .avatar{width:104px;height:104px;border-radius:50%;border:4px solid var(--li-card);background:var(--li-blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:36px;flex-shrink:0;overflow:hidden;cursor:pointer;position:relative;transition:filter .15s;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+        .avatar:hover{filter:brightness(.9);}
+        .avatar img{width:100%;height:100%;object-fit:cover;}
+        .header-body{padding:8px 24px 16px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;}
+        .header-info{flex:1;min-width:200px;}
+        .header-name{font-size:22px;font-weight:600;color:var(--li-black);line-height:1.3;}
+        .header-hl{font-size:14px;color:var(--li-text-sec);margin-top:2px;}
+        .header-meta{font-size:13px;color:var(--li-text-mut);margin-top:4px;}
+        .header-meta a{color:var(--li-blue);text-decoration:none;font-weight:600;}
+        .header-actions{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;align-self:flex-end;}
+        #photo-input{display:none;}
+
+        /* Buttons */
+        .btn{padding:6px 16px;border:none;border-radius:16px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;line-height:1.3;}
+        .btn-pri{background:var(--li-blue);color:#fff;}.btn-pri:hover{background:var(--li-blue-hover);}
+        .btn-ol{background:transparent;border:1px solid var(--li-blue);color:var(--li-blue);}.btn-ol:hover{background:var(--li-blue-bg);border-width:2px;padding:5px 15px;}
+        .btn-gh{background:transparent;color:var(--li-text-sec);border:1px solid var(--li-brd-dk);}.btn-gh:hover{background:#00000008;border-color:var(--li-black);color:var(--li-black);}
+        .btn-sm{padding:4px 12px;font-size:12px;border-radius:12px;}
+        .btn svg{flex-shrink:0;}
+
+        /* Tabs */
+        .tab-bar{background:var(--li-card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:8px;padding:0 16px;display:flex;overflow-x:auto;}
+        .tab-btn{padding:12px 16px;border:none;background:transparent;font-size:14px;font-weight:600;color:var(--li-text-mut);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+        .tab-btn:hover{color:var(--li-text);}
+        .tab-btn.active{color:var(--li-green);border-bottom-color:var(--li-green);}
+        .tab-content{display:none;}.tab-content.active{display:block;}
+
+        /* Cards */
+        .card{background:var(--li-card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:8px;padding:16px 20px;}
+        .card-title{font-size:16px;font-weight:600;color:var(--li-black);}
+        .card-sub{font-size:12px;color:var(--li-text-mut);margin-top:1px;}
+        .card-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+
+        /* Grid */
+        .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+        /* Calendar */
+        .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--li-brd);border-radius:4px;overflow:hidden;font-size:12px;}
+        .cal-hd{background:var(--li-blue);color:#fff;padding:6px 4px;text-align:center;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+        .cal-day{background:#fff;min-height:80px;padding:4px 6px;cursor:pointer;transition:background .1s;}
+        .cal-day:hover{background:var(--li-blue-bg);}
+        .cal-day.today{background:#E7F4E4;}
+        .cal-day.other{background:#FAFAFA;}.cal-day.other .cal-num{color:var(--li-text-mut);}
+        .cal-num{font-size:12px;font-weight:600;margin-bottom:2px;}
+        .cal-ev{font-size:10px;padding:2px 4px;border-radius:3px;margin-bottom:2px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
+        .cal-ev.post{background:var(--li-blue-light);color:var(--li-blue-hover);}.cal-ev.video{background:#FFF3CD;color:var(--li-amber);}.cal-ev.article{background:var(--li-green-bg);color:var(--li-green);}.cal-ev.milestone{background:#EDE9FE;color:var(--li-violet);}
+
+        /* Week View */
+        .week-row{display:grid;grid-template-columns:70px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--li-brd);}
+        .week-label{font-size:13px;font-weight:700;}.week-label small{display:block;font-weight:400;color:var(--li-text-mut);font-size:11px;}
+        .wcard{padding:10px 14px;border-radius:6px;border-left:3px solid var(--li-blue);background:var(--li-blue-bg);cursor:pointer;margin-bottom:6px;transition:box-shadow .15s;}
+        .wcard:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);}
+        .wcard.video{border-left-color:var(--li-amber);background:var(--li-amber-bg);}
+        .wcard.article{border-left-color:var(--li-green);background:var(--li-green-bg);}
+        .wcard.milestone{border-left-color:var(--li-violet);background:#EDE9FE;}
+        .wcard-title{font-size:13px;font-weight:600;}.wcard-meta{font-size:11px;color:var(--li-text-mut);margin-top:1px;}
+
+        /* View Toggle */
+        .vtog{display:flex;gap:2px;}
+        .vtog-btn{padding:6px 16px;border:1px solid var(--li-brd-dk);background:#fff;border-radius:16px;font-size:13px;font-weight:600;cursor:pointer;color:var(--li-text-sec);transition:all .15s;}
+        .vtog-btn.active{background:var(--li-green);color:#fff;border-color:var(--li-green);}
+        .vtog-lg .vtog-btn{padding:8px 24px;font-size:14px;border-radius:20px;}
+
+        /* Topics */
+        .topics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;}
+        .topic{border:1px solid var(--li-brd);border-radius:var(--radius);padding:14px 16px;transition:all .2s;cursor:pointer;}
+        .topic:hover{border-color:var(--li-blue);box-shadow:0 2px 8px rgba(10,102,194,.12);}
+        .topic-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;}
+        .topic-badge.trending{background:#FDE8E8;color:var(--li-red);}.topic-badge.timely{background:var(--li-blue-light);color:var(--li-blue-hover);}.topic-badge.evergreen{background:var(--li-green-bg);color:var(--li-green);}.topic-badge.personal{background:#FFF3CD;color:var(--li-amber);}
+        .topic h4{font-size:14px;font-weight:600;margin-bottom:4px;line-height:1.3;}
+        .topic p{font-size:12px;color:var(--li-text-sec);line-height:1.5;margin-bottom:8px;}
+        .topic-hook{font-size:12px;color:var(--p3-crim);font-weight:600;font-style:italic;margin-bottom:8px;}
+        .tag{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--li-blue-bg);color:var(--li-blue);font-weight:600;display:inline-block;margin:0 3px 3px 0;}
+
+        /* Videos */
+        .vid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;}
+        .vid{border:1px solid var(--li-brd);border-radius:var(--radius);overflow:hidden;transition:all .2s;}
+        .vid:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);}
+        .vid-thumb{height:110px;background:linear-gradient(135deg,#004182 0%,#0A66C2 100%);display:flex;align-items:center;justify-content:center;position:relative;}
+        .vid-play{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);border:2px solid rgba(255,255,255,.4);}
+        .vid-play::after{content:'';width:0;height:0;border-left:14px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:3px;}
+        .vid-dur{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.75);color:#fff;font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600;}
+        .vid-body{padding:12px;}
+        .vid h4{font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.3;}
+        .vid p{font-size:11px;color:var(--li-text-sec);line-height:1.4;margin-bottom:6px;}
+        .vid-hook{font-size:11px;color:var(--p3-crim);font-weight:600;font-style:italic;}
+
+        /* Composer */
+        .composer{border:1px solid var(--li-brd-dk);border-radius:var(--radius);padding:16px;background:#fff;transition:border-color .2s;}
+        .composer:focus-within{border-color:var(--li-blue);}
+        .composer-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+        .composer-av{width:48px;height:48px;border-radius:50%;background:var(--li-blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;flex-shrink:0;overflow:hidden;}
+        .composer-av img{width:100%;height:100%;object-fit:cover;}
+        .composer textarea{width:100%;min-height:150px;border:none;outline:none;resize:vertical;font-family:inherit;font-size:14px;line-height:1.6;color:var(--li-text);}
+        .composer textarea::placeholder{color:var(--li-text-mut);}
+        .char-ct{font-size:12px;color:var(--li-text-mut);text-align:right;margin:4px 0 8px;}
+        .char-ct.warn{color:var(--li-amber);}.char-ct.over{color:var(--li-red);}
+        .composer-bar{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--li-brd);padding-top:10px;flex-wrap:wrap;gap:8px;}
+
+        /* Hashtags */
+        .ht-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+        .ht{font-size:12px;padding:3px 10px;border-radius:14px;background:var(--li-blue-bg);color:var(--li-blue);cursor:pointer;font-weight:600;transition:all .15s;}
+        .ht:hover{background:var(--li-blue);color:#fff;}
+
+        /* Templates */
+        .tpl{border:1px solid var(--li-brd);border-radius:6px;padding:10px 12px;cursor:pointer;transition:all .15s;}
+        .tpl:hover{border-color:var(--li-blue);background:var(--li-blue-bg);}
+        .tpl.sel{border-color:var(--li-blue);background:var(--li-blue-bg);box-shadow:0 0 0 1px var(--li-blue);}
+        .tpl-label{font-size:11px;font-weight:700;color:var(--li-blue);text-transform:uppercase;letter-spacing:.3px;}
+        .tpl-preview{font-size:11px;color:var(--li-text-sec);margin-top:2px;line-height:1.4;}
+
+        /* Post Preview — LinkedIn-style engagement bar */
+        .preview-box{border:1px solid var(--li-brd);border-radius:var(--radius);padding:14px;max-width:480px;}
+        .preview-head{display:flex;gap:8px;margin-bottom:10px;}
+        .preview-av{width:48px;height:48px;border-radius:50%;background:var(--li-blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;flex-shrink:0;overflow:hidden;}
+        .preview-av img{width:100%;height:100%;object-fit:cover;}
+        .preview-body{font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;}
+        .preview-stats{padding:8px 0;font-size:12px;color:var(--li-text-sec);display:flex;justify-content:space-between;}
+        .li-eng-bar{display:flex;border-top:1px solid var(--li-brd);padding-top:4px;}
+        .li-eng-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:10px 4px;border-radius:4px;cursor:default;font-size:12px;font-weight:600;color:var(--li-text-sec);transition:background .1s;}
+        .li-eng-btn:hover{background:#00000008;}
+        .li-eng-btn svg{width:20px;height:20px;fill:var(--li-text-sec);}
+
+        /* Questions */
+        .q-card{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border:1px solid var(--li-brd);border-radius:6px;cursor:pointer;transition:all .15s;margin-bottom:6px;}
+        .q-card:hover{border-color:var(--li-blue);background:var(--li-blue-bg);}
+
+        /* Modal */
+        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:none;align-items:center;justify-content:center;}
+        .modal-bg.open{display:flex;}
+        .modal{background:#fff;border-radius:var(--radius);max-width:560px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+        .modal-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--li-brd);}
+        .modal-h h2{font-size:18px;}
+        .modal-x{background:none;border:none;font-size:24px;cursor:pointer;color:var(--li-text-sec);line-height:1;}
+        .modal-b{padding:20px;}
+        .modal-f{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--li-brd);}
+
+        /* Toast */
+        .toast{position:fixed;bottom:20px;right:20px;background:var(--li-black);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:opacity .3s;}
+
+        /* Responsive */
+        /* Mobile optimization */
+        @media(max-width:768px){
+            .app{padding:0;}
+            .header,.card,.tab-bar{border-radius:0;box-shadow:0 0 0 1px var(--li-brd);}
+            .g2{grid-template-columns:1fr;}
+            .header-banner{height:80px;}
+            .header-avatar-row{margin-top:-36px;padding:0 16px;}
+            .avatar{width:72px;height:72px;font-size:24px;border-width:3px;}
+            .header-body{padding:6px 16px 14px;flex-direction:column;align-items:flex-start;}
+            .header-name{font-size:18px;}
+            .header-hl{font-size:12px;}
+            .header-meta{font-size:11px;margin-top:3px;}
+            .header-actions{width:100%;margin-top:8px;}
+            .header-actions .btn{flex:1;justify-content:center;font-size:13px;padding:8px 12px;}
+            .tab-bar{padding:0 4px;gap:0;}
+            .tab-btn{padding:10px 12px;font-size:13px;}
+            .card{padding:12px 14px;}
+            .topics-grid{grid-template-columns:1fr !important;}
+            .vid-grid{grid-template-columns:1fr !important;}
+            .vtog-lg .vtog-btn{padding:6px 16px;font-size:13px;}
+            .cal-day{min-height:56px;padding:2px 3px;}
+            .cal-ev{font-size:9px;padding:1px 3px;}
+            .cal-hd{padding:4px 2px;font-size:10px;}
+            .composer textarea{min-height:120px;font-size:16px;}
+            .ht{font-size:11px;padding:4px 10px;}
+            .composer-bar{flex-direction:column;gap:8px;}
+            .composer-bar>div{width:100%;display:flex;gap:6px;}
+            .composer-bar .btn{flex:1;justify-content:center;}
+            div[style*="grid-template-columns:1fr 340px"]{grid-template-columns:1fr !important;}
+            .preview-box{max-width:100%;}
+            .modal{width:95%;max-height:90vh;}
+            .q-card{padding:12px;}
+            .week-row{grid-template-columns:54px 1fr;gap:8px;}
+        }
+        @media(max-width:380px){
+            .tab-btn{padding:10px 8px;font-size:12px;}
+            .header-actions .btn{font-size:12px;padding:7px 8px;}
+        }
+        @media print{.tab-bar,.composer,.btn,.modal-bg{display:none!important;}.tab-content{display:block!important;}body{background:#fff;}}
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- HEADER — LinkedIn desktop profile style -->
+    <div class="header">
+        <div class="header-banner"></div>
+        <div class="header-avatar-row">
+            <div class="avatar" id="main-avatar" onclick="document.getElementById('photo-input').click();" title="Click to change photo">
+                <img src="data:image/jpeg;base64,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" id="avatar-img">
+            </div>
+            <input type="file" id="photo-input" accept="image/*" onchange="handlePhotoUpload(event)">
+        </div>
+        <div class="header-body">
+            <div class="header-info">
+                <div class="header-name">Dr. Maxime Madhere</div>
+                <div class="header-hl">CEO & Co-Founder, Pulse of Perseverance Project | Cardiac Anesthesiologist</div>
+                <div class="header-meta">
+                    <a href="https://www.linkedin.com/in/max-madhere-md/" target="_blank">Personal Profile</a> ·
+                    <a href="https://www.linkedin.com/company/pulseofperserverance/" target="_blank">P3 Company Page</a> ·
+                    Week of March 16–22, 2026
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-pri" onclick="switchTab('templates')">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M15.5 1.94a.5.5 0 010 .706L14.46 3.69l-2-2L13.5.646a.5.5 0 01.707 0l1.293 1.293zm-1.75 2.456l-2-2L4.94 9.21a.5.5 0 00-.121.196l-.805 2.414a.25.25 0 00.316.316l2.414-.805a.5.5 0 00.196-.12l6.814-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 002.5 15h11a1.5 1.5 0 001.5-1.5v-6a.5.5 0 00-1 0v6a.5.5 0 01-.5.5h-11a.5.5 0 01-.5-.5v-11a.5.5 0 01.5-.5H9a.5.5 0 000-1H2.5A1.5 1.5 0 001 2.5v11z"/></svg>
+                    Compose Post
+                </button>
+                <button class="btn btn-ol" onclick="switchTab('topics')">Topics & Ideas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS — reordered: Hot Topics first, Dashboard last -->
+    <div class="tab-bar">
+        <button class="tab-btn active" data-tab="topics">Hot Topics & Video Ideas</button>
+        <button class="tab-btn" data-tab="calendar">Content Calendar</button>
+        <button class="tab-btn" data-tab="templates">Post Templates</button>
+    </div>
+
+    <!-- TAB: HOT TOPICS (now first) -->
+    <div id="tab-topics" class="tab-content active">
+        <div class="card"><div class="card-hd"><div><div class="card-title">Recommended Topics</div><div class="card-sub">Curated for P3's mission, goals, and trending LinkedIn conversations</div></div></div><div class="topics-grid" id="topics-grid"></div></div>
+        <div class="card"><div class="card-hd"><div><div class="card-title">Short Video Ideas for Max</div><div class="card-sub">60–90 sec clips · Phone-filmed · Authentic & conversational</div></div></div><div class="vid-grid" id="vid-grid"></div></div>
+        <div class="card"><div class="card-hd"><div class="card-title">Engagement Questions</div><div class="card-sub">Click to copy — drop in posts or comments to spark conversations</div></div><div id="q-list"></div></div>
+    </div>
+
+    <!-- TAB: CALENDAR -->
+    <div id="tab-calendar" class="tab-content">
+        <div class="card">
+            <div class="card-hd">
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <div class="vtog vtog-lg">
+                        <button class="vtog-btn active" onclick="togCal('month',this)">Month</button>
+                        <button class="vtog-btn" onclick="togCal('week',this)">Week</button>
+                    </div>
+                    <div><div class="card-title" id="cal-title">March 2026</div><div class="card-sub">Plan and schedule LinkedIn content</div></div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <button class="btn btn-gh btn-sm" onclick="chgMonth(-1)">← Prev</button>
+                    <button class="btn btn-gh btn-sm" onclick="chgMonth(1)">Next →</button>
+                </div>
+            </div>
+            <div id="cal-month"></div>
+            <div id="cal-week" style="display:none;"></div>
+        </div>
+        <div class="card" style="padding:10px 20px;">
+            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:11px;">
+                <span style="font-weight:700;color:var(--li-text-sec);">Legend:</span>
+                <span><span class="cal-ev post" style="display:inline;padding:1px 6px;">Post</span> Text Post</span>
+                <span><span class="cal-ev video" style="display:inline;padding:1px 6px;">Video</span> Short Video</span>
+                <span><span class="cal-ev article" style="display:inline;padding:1px 6px;">Article</span> Long-Form</span>
+                <span><span class="cal-ev milestone" style="display:inline;padding:1px 6px;">Milestone</span> Announcement</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: POST TEMPLATES -->
+    <div id="tab-templates" class="tab-content">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:8px;">
+            <div>
+                <div class="card"><div class="card-hd"><div class="card-title">Post Templates</div></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;" id="tpl-grid"></div></div>
+                <div class="card" style="padding:0;">
+                    <div class="composer">
+                        <div class="composer-head">
+                            <div class="composer-av" id="compose-av"><img src="data:image/jpeg;base64,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"></div>
+                            <div><div style="font-weight:600;font-size:14px;">Dr. Maxime Madhere</div><div style="font-size:12px;color:var(--li-text-sec);">CEO & Co-Founder, Pulse of Perseverance Project</div></div>
+                        </div>
+                        <textarea id="post-text" placeholder="Share what's on your mind, Max...&#10;&#10;Write about P3's impact, a mentor success story, an upcoming milestone, or a question that sparks conversation."></textarea>
+                        <div class="char-ct" id="char-ct">0 / 3,000</div>
+                        <div>
+                            <div style="font-size:11px;font-weight:600;color:var(--li-text-sec);margin-bottom:4px;">Suggested Hashtags (click to add):</div>
+                            <div class="ht-row" id="ht-row"></div>
+                        </div>
+                        <div class="composer-bar">
+                            <div style="display:flex;gap:6px;">
+                                <button class="btn btn-gh btn-sm" onclick="clearPost()">Clear</button>
+                                <button class="btn btn-gh btn-sm" onclick="previewPost()">Preview</button>
+                            </div>
+                            <div style="display:flex;gap:6px;">
+                                <button class="btn btn-ol btn-sm" onclick="copyPost()">Copy Text</button>
+                                <button class="btn btn-pri btn-sm" onclick="postToLI()">
+                                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.29zM5.34 7.43a2.06 2.06 0 01-2.06-2.06 2.06 2.06 0 112.06 2.06zm1.78 13.02H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45C23.2 24 24 23.23 24 22.27V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+                                    Post to LinkedIn
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="card">
+                    <div class="card-title" style="margin-bottom:8px;">Live Preview</div>
+                    <div class="preview-box">
+                        <div class="preview-head">
+                            <div class="preview-av" id="preview-av"><img src="data:image/jpeg;base64,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"></div>
+                            <div><div style="font-weight:600;font-size:14px;">Dr. Maxime Madhere</div><div style="font-size:12px;color:var(--li-text-sec);">CEO & Co-Founder, Pulse of Perseverance Project</div><div style="font-size:11px;color:var(--li-text-mut);">Just now · 🌐</div></div>
+                        </div>
+                        <div class="preview-body" id="preview-body"><span style="color:var(--li-text-mut);font-style:italic;">Start typing to see preview...</span></div>
+                        <div class="preview-stats"><span>— likes</span><span>— comments · — reposts</span></div>
+                        <div class="li-eng-bar">
+                            <div class="li-eng-btn"><svg viewBox="0 0 24 24"><path d="M19.46 11l-3.91-3.91a7 7 0 00-1.69-1.1l.76-2.4a.18.18 0 00-.24-.22l-3.4 1.7a.18.18 0 00-.1.16v2.05A6.93 6.93 0 008 8.87L2.14 3a.47.47 0 00-.8.33v10.19a6.72 6.72 0 004.74 6.42l.46.15a6.93 6.93 0 004.56-.09l6.36 2.54a.18.18 0 00.24-.22l-.76-2.4a7 7 0 001.69-1.1L22.54 15a.47.47 0 00-.01-.66z"/></svg> Like</div>
+                            <div class="li-eng-btn"><svg viewBox="0 0 24 24"><path d="M7 9h10v1H7zm0 4h7v-1H7zm16-2a6.78 6.78 0 01-2.84 5.61L12 22v-4H8A7 7 0 018 4h8a7 7 0 017 7z"/></svg> Comment</div>
+                            <div class="li-eng-btn"><svg viewBox="0 0 24 24"><path d="M13.96 5H6C3.24 5 1 7.24 1 10s2.24 5 5 5h3v5.5L13.96 16H18c2.76 0 5-2.24 5-5s-2.24-5-5-5h-4.04z"/></svg> Repost</div>
+                            <div class="li-eng-btn"><svg viewBox="0 0 24 24"><path d="M21 3L0 10l7.66 4.26L14 8l-6.26 6.34L12 21l9-18z"/></svg> Send</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title" style="margin-bottom:8px;font-size:14px;">Writing Tips</div>
+                    <div style="font-size:12px;color:var(--li-text-sec);line-height:1.6;">
+                        <p style="margin-bottom:6px;"><strong>Lead with impact.</strong> Open with the "what" before the "why." Frame wins as collective victories.</p>
+                        <p style="margin-bottom:6px;"><strong>Name names.</strong> Credit specific people. Recognition builds community.</p>
+                        <p style="margin-bottom:6px;"><strong>Stay warm.</strong> Professional but emotionally accessible. Redirect credit outward.</p>
+                        <p style="margin-bottom:6px;"><strong>End with a question.</strong> Invite the community into the conversation.</p>
+                        <p><strong>Keep it scannable.</strong> Short paragraphs, line breaks, strategic emoji (sparingly).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: DASHBOARD (now last) -->
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modal"><div class="modal"><div class="modal-h"><h2>Post Preview</h2><button class="modal-x" onclick="closeModal()">×</button></div><div class="modal-b" id="modal-body"></div><div class="modal-f"><button class="btn btn-gh btn-sm" onclick="closeModal()">Close</button><button class="btn btn-ol btn-sm" onclick="copyPost();closeModal();">Copy</button><button class="btn btn-pri btn-sm" onclick="postToLI()">Post to LinkedIn</button></div></div></div>
+
+<script>
+// ═══════ DATA ═══════
+const CAL=[
+{date:'2026-03-16',type:'post',title:'Monday Motivation: Student Spotlight',
+draft:"Every Monday I'm reminded why we built @Pulse of Perseverance.\n\nThis week I want to celebrate one of our mentees who just landed her first internship through a connection she made on P3.\n\nShe's a first-generation college student from the South Side of Chicago. No family network in her field. No \"warm intros.\"\n\nBut she had ambition — and P3 gave her a mentor who could open the right door.\n\nThat's what this work is about. Not just technology. Not just an app. It's about erasing the distance between talent and opportunity.\n\nWho in your network could benefit from a mentor? Tag them below.\n\n#Mentorship #EdTech #FirstGen #P3"},
+{date:'2026-03-17',type:'video',title:'Why 70% of Students Feel Unprepared (60s)',
+draft:"70% of students say they feel unprepared for college and career.\n\nThat number keeps me up at night — and it's exactly why we created Pulse of Perseverance.\n\nIn this 60-second clip, I break down the three gaps we're closing:\n→ The Mentorship Gap\n→ The Access Gap\n→ The Navigation Gap\n\nEvery student deserves someone in their corner. That's the mission.\n\n#MentorshipMatters #StudentSuccess #P3 #CareerReadiness"},
+{date:'2026-03-19',type:'post',title:'Partner Shoutout: Obama Foundation / MBK',
+draft:"Grateful doesn't begin to cover it.\n\nOur partnership with the Obama Foundation through My Brother's Keeper Chicago has been transformational for P3.\n\nWhen purpose-driven organizations come together, the ripple effects are extraordinary. MBK Chicago believes what we believe: that every young person — regardless of zip code — deserves a pathway to success.\n\nTogether we're building that pathway. One mentor match at a time.\n\nTo our partners at MBK Chicago, Vondale Singleton, and the entire network: thank you for betting on this mission.\n\nWho's doing work that inspires you right now? I'd love to hear.\n\n#ObamaFoundation #MBKChicago #Partnerships #YouthDevelopment #P3"},
+{date:'2026-03-20',type:'article',title:'How AI Smart Matching Is Changing Mentorship',
+draft:"The old model of mentorship is broken.\n\nStudents are matched with mentors based on geography, availability, or luck. Not based on goals, industry alignment, or career stage.\n\nAt P3, we built something different. Our AI Smart Match algorithm pairs students with vetted industry professionals across multiple fields — in seconds.\n\nHere's what makes it work:\n\n→ Students define their career aspirations\n→ Mentors specify their expertise and availability\n→ The algorithm finds the highest-fit match based on goals, not geography\n\nThe result? 99% mentorship retention. When you match people with intention, the relationship sticks.\n\nI'd love to hear from other leaders using technology to solve human problems. What's working for you?\n\n#AI #Mentorship #EdTech #Innovation #P3"},
+{date:'2026-03-22',type:'post',title:'Weekend Reflection: The Perseverance Mindset',
+draft:"Something I've been thinking about this week.\n\nWhen we named this organization \"Pulse of Perseverance,\" it wasn't just a brand. It was a belief.\n\nPerseverance isn't about grinding yourself into the ground. It's about showing up — again — when the odds aren't in your favor.\n\nI see it every day in our students. In our mentors. In this team.\n\nA first-gen student who applies to 47 internships and gets one \"yes.\"\nA mentor who carves out 30 minutes a week because she remembers what it felt like to navigate alone.\nA small nonprofit team that believes a free app can change the trajectory of thousands of young lives.\n\nThat's perseverance. That's the pulse.\n\nWhat keeps you going when things get hard?\n\n#Perseverance #Leadership #Motivation #P3"},
+{date:'2026-03-23',type:'post',title:'Mentorship Monday: Mentor Feature',
+draft:"Meet one of P3's incredible mentors.\n\nShe's a software engineer at a Fortune 500 company. First in her family to work in tech.\n\nShe mentors two students on P3 — both aspiring engineers from underrepresented backgrounds.\n\nHer words: \"I mentor because no one should have to figure this out alone. P3 made it easy for me to give back.\"\n\nThat's the power of removing barriers. When you make mentoring accessible, people show up.\n\n900+ users. 200+ mentors. 4.9-star rating. Growing every day.\n\nWe're just getting started.\n\n#MentorshipMatters #WomenInTech #Representation #P3"},
+{date:'2026-03-25',type:'video',title:'What If Every Student Had a Mentor? (90s)',
+draft:"What if every student — regardless of zip code — had a mentor in their chosen field?\n\nStudents with mentors are significantly more likely to enroll in college and become leaders.\n\nBut access to mentorship is deeply unequal.\n\nWe're changing that. One match at a time.\n\n#MentorshipGap #EducationEquity #P3 #Impact"},
+{date:'2026-03-26',type:'milestone',title:'P3 Scholarship: March Winner',
+draft:"Congratulations to our March P3 Scholarship winner!\n\nEvery month, we award a scholarship to an active P3 mentee who is pursuing excellence.\n\nSince 2018, we've awarded over $100,000 in scholarships to high school and college students across the country.\n\nThis isn't just money. It's a signal: we see you, we believe in you, and we're investing in your future.\n\nApplications for April are now open — due by April 1st. Download the P3 app to apply.\n\n#Scholarship #P3Scholars #InvestInStudents #HigherEd"},
+{date:'2026-03-27',type:'post',title:'P3 App: 900+ Users and Growing',
+draft:"A quick update on where we are.\n\nP3 now has 900+ registered users — mentors and mentees. 1,700+ total downloads. 4.9-star App Store rating. And our mentorship retention sits at 99%.\n\nBut the number that matters most? The one we can't fully measure yet.\n\nHow many conversations have shifted a young person's trajectory?\nHow many doors opened because of a single introduction?\nHow many students decided to keep going — because someone was in their corner?\n\nThat's the real metric. And we're building the tools to capture it.\n\nOur 2026 goal: 3,000 users. 800 monthly active. 8 institutional partners.\n\nWe're not just growing. We're building something that lasts.\n\n#EdTech #Impact #StartupJourney #P3"},
+{date:'2026-04-01',type:'post',title:"Q2 Kickoff: What We're Building",
+draft:"Q1 is in the books. Here's where we're headed in Q2.\n\nAt P3, this quarter is about activation.\n\nWe're launching our Partner Analytics Dashboard — giving institutions real data on mentorship outcomes.\n\nWe're pushing toward 1,800 registered users.\n\nWe're closing our first paid institutional partnerships.\n\nAnd we're continuing to award monthly scholarships to the students who inspire us most.\n\nQ2 is where the mission meets the marketplace.\n\nWhat are you focused on this quarter?\n\n#Q2Goals #EdTech #Startups #P3"},
+{date:'2026-04-03',type:'video',title:'The Story Behind P3 (2 min)',
+draft:"People often ask me: why did three doctors start an education nonprofit?\n\nThe answer is simple. Because we lived it.\n\nDr. Pierre Johnson, Dr. Joseph Semien, and I — we each faced moments where one mentor, one conversation, one open door changed everything.\n\nWe wrote about it in our book, \"Pulse of Perseverance.\" And we built this app to make sure no student has to navigate alone.\n\nThis is our story. And it's just getting started.\n\n#FounderStory #P3 #Perseverance #Mentorship"},
+];
+
+const TOPICS=[
+// ── P3 Mission & Goals ──
+{badge:'timely',title:'Partner Dashboard Launch (May 2026)',desc:"P3 is launching its institutional analytics dashboard — turning student journeys into data universities can act on.",tags:['EdTech','DataDriven','HigherEd','Partnerships'],hook:'What if universities could see exactly how mentorship changes outcomes?'},
+{badge:'personal',title:'The Doctor-to-CEO Journey',desc:"Max's story as a cardiac anesthesiologist who co-founded an EdTech nonprofit. Personal vulnerability + professional credibility = high engagement on LinkedIn.",tags:['FounderStory','Leadership','Medicine','Entrepreneurship'],hook:'I spend my days saving lives in the OR. So why did I build an app?'},
+{badge:'timely',title:'Monthly Scholarship Winner Spotlight',desc:"Each month P3 awards a scholarship to an active mentee. $100K+ awarded since 2018. Celebration posts drive engagement and reinforce the community-first brand.",tags:['Scholarships','StudentSuccess','P3Scholars','Celebration'],hook:"Over $100,000 awarded in scholarships. And this month's winner is..."},
+{badge:'evergreen',title:'"Talent Is Universal, Access Is Not"',desc:"P3's core tagline. Unpack it with a real example — a student with extraordinary potential who lacked a single professional connection.",tags:['Equity','Access','Opportunity','P3'],hook:"Talent is universal. Access is not. Here's what I mean."},
+{badge:'timely',title:'HBCU Partnership Expansion',desc:"P3 is expanding into HBCU partnerships in 2026. Connecting HBCUs with mentorship data and career pathways.",tags:['HBCU','HigherEd','Partnerships','YouthDevelopment'],hook:'HBCUs produce extraordinary talent. Imagine what happens when every student has a mentor.'},
+// ── Viral Industry Topics: Mentorship ──
+{badge:'trending',title:'The Mentorship Gap Crisis',desc:"Only a fraction of students have access to a professional mentor — yet mentored students are dramatically more likely to enroll in college and become leaders. This stat alone drives massive LinkedIn engagement.",tags:['Mentorship','EducationEquity','FirstGen','YouthDevelopment'],hook:'Did you know most students have zero access to a professional mentor?'},
+{badge:'trending',title:'Why Reverse Mentoring Is Exploding',desc:"Gen Z employees mentoring senior leaders on AI, social media, and emerging culture is one of the most shared topics on LinkedIn right now. Position P3 as part of this movement — mentorship flows both ways.",tags:['ReverseMentoring','GenZ','Leadership','FutureOfWork'],hook:'The best mentoring relationships teach both sides something new.'},
+{badge:'trending',title:'Mentorship as a Retention Strategy',desc:"Companies are discovering that structured mentoring programs reduce attrition dramatically. LinkedIn data shows mentorship-related posts consistently outperform other HR content. Tie this to P3's 99% retention rate.",tags:['Retention','TalentDevelopment','HR','MentorshipMatters'],hook:'Our mentorship retention rate is 99%. Here is why.'},
+{badge:'evergreen',title:'The One Conversation That Changed Everything',desc:"Personal story posts about a single pivotal mentor conversation are among the most viral formats on LinkedIn. Authentic, specific, emotional — and perfectly on-brand for Max.",tags:['Mentorship','CareerAdvice','PersonalGrowth','Storytelling'],hook:'One conversation with a mentor changed the entire trajectory of my career.'},
+// ── Viral Industry Topics: EdTech ──
+{badge:'trending',title:'70% of Job Skills Will Change by 2030',desc:"LinkedIn's 2026 Skills on the Rise report shows AI is reshaping workforce requirements. Position P3 as future-proofing students through human mentorship + AI-powered matching.",tags:['FutureOfWork','AI','SkillsGap','CareerReadiness'],hook:'By 2030, 70% of the skills needed for your job will be different. Are students ready?'},
+{badge:'trending',title:'AI in Education: Augment, Not Replace',desc:"The hottest EdTech debate on LinkedIn. AI tools in classrooms are controversial — but P3's AI Smart Match is the right use case: connecting students to humans, not replacing teachers.",tags:['AI','EdTech','Innovation','SmartMatching'],hook:'We use AI not to replace human connection — but to create it.'},
+{badge:'trending',title:'The Student Loneliness Epidemic',desc:"Student mental health and isolation is a top-trending topic on LinkedIn. Mentorship directly combats loneliness. This angle drives both empathy engagement and shares.",tags:['MentalHealth','StudentWellbeing','Mentorship','Community'],hook:'The biggest crisis in education right now is not academic — it is loneliness.'},
+{badge:'trending',title:'LinkedIn Future of Work Fund 2026',desc:"LinkedIn just launched a grant fund for nonprofits preparing young adults for the AI economy. This is directly aligned with P3's mission and creates a timely hook for engagement.",tags:['FutureOfWork','Grants','NonprofitLeader','Opportunity'],hook:'LinkedIn is investing in nonprofits building pathways for underserved youth. Sound familiar?'},
+// ── Viral Industry Topics: Equity & Access ──
+{badge:'trending',title:'First-Gen Students Are Building the Future',desc:"First-generation college students are a consistently trending topic on LinkedIn. Posts about first-gen barriers and triumphs drive high engagement from both educators and corporate leaders.",tags:['FirstGen','CollegeReady','CareerReadiness','Opportunity'],hook:'First-gen students face barriers most people never see.'},
+{badge:'trending',title:'The Zip Code Shouldn\'t Determine the Future',desc:"Geographic inequality in education access is one of the most shared topics in the social impact space. P3's mission to connect students regardless of location is the perfect response.",tags:['EducationEquity','SocialImpact','Access','Nonprofit'],hook:'A student in rural Louisiana deserves the same mentor network as a student in Manhattan.'},
+{badge:'trending',title:'Why Corporate Mentorship Programs Fail',desc:"Hot take content drives LinkedIn engagement. Most corporate mentoring programs lack structure and accountability — P3 solved this with AI matching and gamified pathways. Contrarian angle performs well.",tags:['CorporateMentoring','HR','TalentDevelopment','Innovation'],hook:'Most mentorship programs fail. Here is the uncomfortable reason why.'},
+];
+
+const VIDEOS=[
+{title:'Why 70% of Students Feel Unprepared',desc:'Quick stat-driven piece. Open with the stat, break down the three gaps P3 addresses.',dur:'60 sec',fmt:'Selfie / Talking Head',hook:'"70% of students say they feel unprepared. Let me tell you why."'},
+{title:"What P3's AI Smart Match Actually Does",desc:'Demystify the tech. Show your phone, walk through the matching process.',dur:'90 sec',fmt:'Screen + Talking Head',hook:'"Our AI matched a student in Chicago with a mentor in Atlanta — in seconds."'},
+{title:'The Story Behind Pulse of Perseverance',desc:'Origin story. Three doctors. One mission. Film somewhere meaningful.',dur:'2 min',fmt:'Narrative / B-Roll',hook:'"People ask me: why did three doctors start an education nonprofit?"'},
+{title:'99% Mentorship Retention — Here\'s How',desc:'Our mentorships stick because matching is intentional, friction is low, and value is real for both sides.',dur:'75 sec',fmt:'Talking Head',hook:'"99% of our mentorships are still active after 90 days."'},
+{title:'A Day in the Life: P3 CEO + Doctor',desc:'Show the dual life — OR in the morning, P3 work in the evening. Humanize the mission.',dur:'90 sec',fmt:'Day-in-the-Life',hook:'"6 AM: saving lives. 6 PM: building futures."'},
+{title:'What I Wish Someone Told Me at 18',desc:'Reflective, personal content that performs extremely well on LinkedIn.',dur:'60 sec',fmt:'Selfie / Talking Head',hook:'"If I could go back and tell my 18-year-old self one thing..."'},
+];
+
+const QUESTIONS=[
+{q:'Who was the mentor that changed your trajectory? Tag them below.',ctx:'Mentorship posts'},
+{q:"What's one piece of career advice you wish you'd received earlier?",ctx:'Leadership / reflection'},
+{q:'If you could give a first-gen student one resource, what would it be?',ctx:'First-gen / access'},
+{q:'What does "talent is universal, access is not" mean to you?',ctx:'Mission / equity'},
+{q:"Leaders: what's one thing you're building this quarter?",ctx:'Q2 kickoff / planning'},
+{q:'How did your first internship change your career path?',ctx:'Student success'},
+{q:'What organization is doing incredible work in youth development right now?',ctx:'Partner / community'},
+{q:"What's the biggest barrier young people face in your industry?",ctx:'Industry engagement'},
+];
+
+const TEMPLATES=[
+{label:'Student Spotlight',content:"I want to celebrate [Student Name] today.\n\n[He/She/They] came to P3 as a [description]. Through our AI-powered matching, [he/she/they] connected with a mentor in [field].\n\nThe result? [Specific outcome — internship, job offer, enrollment, etc.]\n\nThis is what happens when you remove barriers between talent and opportunity.\n\n[Student Name], we're proud of you. Keep going.\n\nWho in your network could benefit from a mentor? Tag them below.\n\n#StudentSuccess #Mentorship #P3 #TalentIsUniversal"},
+{label:'Partner Shoutout',content:"Grateful doesn't begin to cover it.\n\nOur partnership with [Partner Name] has been [transformational / incredible] for P3.\n\nWhen purpose-driven [organizations / people] come together, [specific impact]. [Partner Name] believes what we believe: every young person deserves a pathway to success.\n\nTo our partners at [Partner Name]: thank you for betting on this mission.\n\nWho's doing work that inspires you right now?\n\n#Partnerships #Impact #Community #P3"},
+{label:'Data / Impact',content:"The numbers tell a powerful story.\n\n→ 900+ registered users\n→ 99% mentorship retention\n→ 4.9★ App Store rating\n→ $100K+ in scholarships awarded since 2018\n→ 84 jobs secured through P3 connections\n\nBut behind every number is a student who decided to keep going. A mentor who showed up. A community that believes in the mission.\n\nWhat metric matters most in your work?\n\n#Impact #EdTech #Data #P3"},
+{label:'Personal Reflection',content:"Something I've been thinking about.\n\n[Open with a genuine reflection or moment.]\n\n[2-3 paragraphs expanding on the thought. Connect back to the mission.]\n\n[Close with a question that invites conversation.]\n\n#Leadership #Reflection #P3"},
+{label:'Scholarship',content:"Congratulations to our [Month] P3 Scholarship winner!\n\n[Winner Name] is a [description]. [He/She/They] embodies everything P3 stands for: perseverance, ambition, and community.\n\nSince 2018, we've awarded over $100,000 in scholarships to students across the country.\n\nApplications for [next month] are open — due by [date]. Download the P3 app to apply.\n\n#P3Scholars #Scholarship #InvestInStudents"},
+{label:'Milestone / Update',content:"A quick update — because this community deserves to know.\n\n[Share 2-3 specific milestones.]\n\nNone of this happens without [shoutouts — team, partners, mentors, students].\n\nWe're not just growing. We're building something that matters.\n\nWhat milestones is your team celebrating?\n\n#Milestones #Growth #P3"},
+];
+
+const HASHTAGS=['#PulseOfPerseverance','#P3','#Mentorship','#MentorshipMatters','#EdTech','#StudentSuccess','#FirstGen','#HBCU','#YouthDevelopment','#EducationEquity','#CareerReadiness','#TalentIsUniversal','#Leadership','#NonprofitLeader','#SocialImpact','#Chicago'];
+
+
+// ═══════ PHOTO UPLOAD ═══════
+function handlePhotoUpload(e){
+    const file=e.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(ev){
+        const src=ev.target.result;
+        document.querySelectorAll('.avatar img, .composer-av img, .preview-av img').forEach(el=>{el.src=src;});
+        toast('Photo updated!');
+    };
+    reader.readAsDataURL(file);
+}
+
+// ═══════ TABS ═══════
+document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+        document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+        b.classList.add('active');
+        document.getElementById('tab-'+b.dataset.tab).classList.add('active');
+    });
+});
+function switchTab(id){
+    document.querySelectorAll('.tab-btn').forEach(t=>{t.classList.remove('active');if(t.dataset.tab===id)t.classList.add('active');});
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+}
+
+// ═══════ DATE HELPER — avoids UTC timezone bugs ═══════
+function parseDate(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+const DY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ═══════ CALENDAR ═══════
+let cMonth=2,cYear=2026;
+function renderCal(){
+    document.getElementById('cal-title').textContent=MO[cMonth]+' '+cYear;
+    const f=new Date(cYear,cMonth,1).getDay(),d=new Date(cYear,cMonth+1,0).getDate(),p=new Date(cYear,cMonth,0).getDate();
+    const today=new Date();
+    let h='<div class="cal-grid">';
+    DY.forEach(d=>{h+='<div class="cal-hd">'+d+'</div>';});
+    for(let i=f-1;i>=0;i--)h+='<div class="cal-day other"><div class="cal-num">'+(p-i)+'</div></div>';
+    for(let i=1;i<=d;i++){
+        const ds=cYear+'-'+String(cMonth+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');
+        const isToday=today.getDate()===i&&today.getMonth()===cMonth&&today.getFullYear()===cYear;
+        const evts=CAL.filter(e=>e.date===ds);
+        h+='<div class="cal-day'+(isToday?' today':'')+'" onclick="openDay(\''+ds+'\')"><div class="cal-num">'+i+'</div>';
+        evts.forEach(e=>{h+='<div class="cal-ev '+e.type+'" title="'+e.title+'">'+e.title+'</div>';});
+        h+='</div>';
+    }
+    const tot=f+d,rem=tot%7===0?0:7-tot%7;
+    for(let i=1;i<=rem;i++)h+='<div class="cal-day other"><div class="cal-num">'+i+'</div></div>';
+    h+='</div>';
+    document.getElementById('cal-month').innerHTML=h;
+}
+function renderWeek(){
+    const ws=new Date(2026,2,16);
+    let h='';
+    for(let i=0;i<7;i++){
+        const dt=new Date(ws);dt.setDate(dt.getDate()+i);
+        const ds=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+        const evts=CAL.filter(e=>e.date===ds);
+        h+='<div class="week-row"><div class="week-label">'+DY[dt.getDay()]+'<small>'+dt.getDate()+' Mar</small></div><div>';
+        if(!evts.length)h+='<div style="font-size:12px;color:var(--li-text-mut);font-style:italic;padding:4px 0;">No content planned</div>';
+        evts.forEach(e=>{
+            h+='<div class="wcard '+e.type+'" onclick="loadDraft('+CAL.indexOf(e)+')"><div class="wcard-title">'+e.title+'</div><div class="wcard-meta">'+e.type+'</div></div>';
+        });
+        h+='</div></div>';
+    }
+    document.getElementById('cal-week').innerHTML=h;
+}
+function chgMonth(d){cMonth+=d;if(cMonth>11){cMonth=0;cYear++;}if(cMonth<0){cMonth=11;cYear--;}renderCal();}
+function togCal(v,b){document.querySelectorAll('.vtog-lg .vtog-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('cal-month').style.display=v==='month'?'block':'none';document.getElementById('cal-week').style.display=v==='week'?'block':'none';}
+function openDay(ds){const e=CAL.find(c=>c.date===ds);if(e){loadDraft(CAL.indexOf(e));}}
+
+
+// ═══════ TOPICS ═══════
+function renderTopics(){
+    document.getElementById('topics-grid').innerHTML=TOPICS.map(t=>{
+        const hookEsc=t.hook.replace(/'/g,'&#39;');
+        const tagsStr=t.tags.map(g=>'#'+g).join(' ');
+        return '<div class="topic"><span class="topic-badge '+t.badge+'">'+t.badge+'</span><h4>'+t.title+'</h4><p>'+t.desc+'</p><div class="topic-hook">Hook: "'+t.hook+'"</div><div>'+t.tags.map(g=>'<span class="tag">#'+g+'</span>').join('')+'</div><div style="margin-top:10px;"><button class="btn btn-pri btn-sm" onclick="useTopic(\''+hookEsc+'\',\''+tagsStr+'\')">Draft Post</button></div></div>';
+    }).join('');
+}
+function renderVids(){
+    document.getElementById('vid-grid').innerHTML=VIDEOS.map(v=>'<div class="vid"><div class="vid-thumb"><div class="vid-play"></div><span class="vid-dur">'+v.dur+'</span></div><div class="vid-body"><h4>'+v.title+'</h4><p>'+v.desc+'</p><div style="font-size:11px;color:var(--li-blue);font-weight:600;">'+v.fmt+'</div><div class="vid-hook" style="margin-top:6px;">Hook: '+v.hook+'</div></div></div>').join('');
+}
+function renderQs(){
+    document.getElementById('q-list').innerHTML=QUESTIONS.map(q=>{
+        const qEsc=q.q.replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+        return '<div class="q-card" onclick="copyQ(this,\''+qEsc+'\')"><div><div style="font-size:13px;font-weight:600;">"'+q.q+'"</div><div style="font-size:11px;color:var(--li-text-mut);margin-top:1px;">Best for: '+q.ctx+'</div></div><button class="btn btn-gh btn-sm">Copy</button></div>';
+    }).join('');
+}
+function copyQ(el,text){navigator.clipboard.writeText(text.replace(/&#39;/g,"'").replace(/&quot;/g,'"')).then(()=>toast('Copied to clipboard!'));}
+function useTopic(hook,tags){
+    const h=hook.replace(/&#39;/g,"'");
+    document.getElementById('post-text').value=h+"\n\n[Expand on this topic — share a personal story, P3 data point, or real example.]\n\n[Add 2-3 supporting paragraphs.]\n\n[End with a question that invites conversation.]\n\n"+tags;
+    updChar();updPreview();switchTab('templates');
+}
+
+// ═══════ COMPOSER ═══════
+function renderTpls(){document.getElementById('tpl-grid').innerHTML=TEMPLATES.map((t,i)=>'<div class="tpl" onclick="loadTpl('+i+')"><div class="tpl-label">'+t.label+'</div><div class="tpl-preview">'+t.content.substring(0,70)+'...</div></div>').join('');}
+function renderHts(){document.getElementById('ht-row').innerHTML=HASHTAGS.map(h=>'<span class="ht" onclick="addHt(\''+h+'\')">'+h+'</span>').join('');}
+function loadTpl(i){document.getElementById('post-text').value=TEMPLATES[i].content;updChar();updPreview();document.querySelectorAll('.tpl').forEach(t=>t.classList.remove('sel'));document.querySelectorAll('.tpl')[i].classList.add('sel');}
+function loadDraft(i){document.getElementById('post-text').value=CAL[i].draft;updChar();updPreview();switchTab('templates');}
+function addHt(h){const ta=document.getElementById('post-text');if(!ta.value.includes(h)){ta.value=ta.value.trimEnd()+(ta.value?' ':'')+h;updChar();updPreview();}}
+function updChar(){const n=document.getElementById('post-text').value.length;const el=document.getElementById('char-ct');el.textContent=n.toLocaleString()+' / 3,000';el.className='char-ct'+(n>2800?' over':n>2500?' warn':'');}
+function updPreview(){const t=document.getElementById('post-text').value;document.getElementById('preview-body').innerHTML=t.trim()?esc(t):'<span style="color:var(--li-text-mut);font-style:italic;">Start typing to see preview...</span>';}
+function clearPost(){document.getElementById('post-text').value='';updChar();updPreview();document.querySelectorAll('.tpl').forEach(t=>t.classList.remove('sel'));}
+function previewPost(){
+    const t=document.getElementById('post-text').value;if(!t.trim()){toast('Write something first!');return;}
+    const av=document.querySelector('.avatar img');
+    const imgTag=av?'<img src="'+av.src+'">':'MM';
+    document.getElementById('modal-body').innerHTML='<div class="preview-box" style="max-width:100%;"><div class="preview-head"><div class="preview-av">'+imgTag+'</div><div><div style="font-weight:600;font-size:14px;">Dr. Maxime Madhere</div><div style="font-size:12px;color:var(--li-text-sec);">CEO & Co-Founder, Pulse of Perseverance Project</div><div style="font-size:11px;color:var(--li-text-mut);">Just now · 🌐</div></div></div><div class="preview-body">'+esc(t)+'</div><div class="preview-stats"><span>— likes</span><span>— comments · — reposts</span></div><div class="li-eng-bar"><div class="li-eng-btn">👍 Like</div><div class="li-eng-btn">💬 Comment</div><div class="li-eng-btn">🔁 Repost</div><div class="li-eng-btn">📤 Send</div></div></div>';
+    document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function copyPost(){const t=document.getElementById('post-text').value;if(!t.trim()){toast('Nothing to copy!');return;}navigator.clipboard.writeText(t).then(()=>toast('Copied to clipboard!'));}
+function postToLI(){const t=document.getElementById('post-text').value;if(!t.trim()){toast('Write something first!');return;}window.open('https://www.linkedin.com/feed/?shareActive=true&text='+encodeURIComponent(t),'_blank');}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+
+
+// ═══════ TOAST ═══════
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},2000);}
+
+// ═══════ INIT ═══════
+document.getElementById('post-text').addEventListener('input',()=>{updChar();updPreview();});
+renderCal();renderWeek();renderTopics();renderVids();renderQs();renderTpls();renderHts();
+</script>
+</body>
+</html>
